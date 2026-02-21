@@ -1,0 +1,26 @@
+services:
+  grafana:
+    image: grafana/grafana:latest
+    container_name: fitbyte-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_INSTALL_PLUGINS=frser-sqlite-datasource
+    volumes:
+      - ./fitbit_data.sqlite:/var/lib/grafana/fitbit_data.sqlite
+      - grafana-data:/var/lib/grafana
+    restart: unless-stopped
+
+  sqlite-web:
+    image: coleifer/sqlite-web
+    container_name: fitbyte-sqlite-web
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./fitbit_data.sqlite:/data/fitbit_data.sqlite
+    environment:
+      - SQLITE_DATABASE=fitbit_data.sqlite
+    restart: unless-stopped
+
+volumes:
+  grafana-data:
