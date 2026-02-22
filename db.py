@@ -39,6 +39,16 @@ def init_db():
         )
     ''')
     
+    # Store intraday heart rate
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS heart_rate_intraday (
+            date TEXT,
+            time TEXT,
+            value INTEGER,
+            PRIMARY KEY (date, time)
+        )
+    ''')
+    
     conn.commit()
     conn.close()
     print(f"Database initialized at {DB_FILE}")
@@ -106,6 +116,25 @@ def upsert_user_profile(profile_data):
         profile_data.get('displayName', ''),
         profile_data.get('avatar', '')
     ))
+    
+    conn.commit()
+    conn.close()
+
+def insert_heart_rate_intraday(date, dataset):
+    """
+    Insert intraday heart rate metrics for a specific date.
+    dataset is a list of dicts like: {"time": "14:15:00", "value": 72}
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    # We can use executemany for bulk insert
+    rows = [(date, dp['time'], dp['value']) for dp in dataset]
+    
+    cursor.executemany('''
+        INSERT OR IGNORE INTO heart_rate_intraday (date, time, value)
+        VALUES (?, ?, ?)
+    ''', rows)
     
     conn.commit()
     conn.close()

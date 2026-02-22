@@ -123,6 +123,23 @@ def fetch_and_store_daily_activity(token_data, date_str=None):
         db.upsert_daily_activity(date_str, metrics)
         print(f"Activity for {date_str} saved to database.")
 
+def fetch_and_store_heart_rate_intraday(token_data, date_str=None):
+    if not date_str:
+        # Use today's date in YYYY-MM-DD format
+        date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+        
+    print(f"Fetching intraday heart rate for {date_str}...")
+    # The endpoint is activities/heart/date/[date]/1d/1min.json
+    response = make_api_request(f"activities/heart/date/{date_str}/1d/1min.json", token_data)
+    
+    if response and 'activities-heart-intraday' in response:
+        intraday_data = response['activities-heart-intraday'].get('dataset', [])
+        if intraday_data:
+            db.insert_heart_rate_intraday(date_str, intraday_data)
+            print(f"Saved {len(intraday_data)} heart rate data points for {date_str}.")
+        else:
+            print(f"No intraday heart rate data available for {date_str}.")
+
 def run_ingestion():
     db.init_db() # Ensure DB is initialized
     
@@ -133,6 +150,7 @@ def run_ingestion():
         
     fetch_and_store_profile(token_data)
     fetch_and_store_daily_activity(token_data)
+    fetch_and_store_heart_rate_intraday(token_data)
     print("Ingestion complete.")
 
 if __name__ == "__main__":
