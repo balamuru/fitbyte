@@ -165,10 +165,17 @@ def run_ingestion():
         return
         
     fetch_and_store_profile(token_data)
-    fetch_and_store_daily_activity(token_data)
-    fetch_and_store_heart_rate_intraday(token_data)
-    fetch_and_store_exercise_sessions(token_data)
-    print("Ingestion complete.")
+    
+    # Fetch data for the last 3 days to prevent gaps if the script is offline
+    for i in range(3, -1, -1):
+        target_date = datetime.datetime.now() - datetime.timedelta(days=i)
+        date_str = target_date.strftime("%Y-%m-%d")
+        print(f"\n--- Fetching data for {date_str} ---")
+        fetch_and_store_daily_activity(token_data, date_str)
+        fetch_and_store_heart_rate_intraday(token_data, date_str)
+        fetch_and_store_exercise_sessions(token_data, date_str)
+        
+    print("\nIngestion complete.")
 
 if __name__ == "__main__":
     run_ingestion()

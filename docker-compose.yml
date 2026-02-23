@@ -1,9 +1,18 @@
 services:
+  ingest:
+    build: .
+    container_name: fitbyte-ingest
+    volumes:
+      - ./fitbit_data.sqlite:/app/fitbit_data.sqlite
+      - ./.env:/app/.env
+      - ./token.json:/app/token.json
+    restart: unless-stopped
+
   grafana:
     image: grafana/grafana:latest
     container_name: fitbyte-grafana
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       - GF_INSTALL_PLUGINS=frser-sqlite-datasource
     volumes:

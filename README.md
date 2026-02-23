@@ -74,30 +74,33 @@ This will:
 3. Fetch your user profile and today's activity metrics.
 4. Save the data to the database.
 
-## Automation
+## Automation (Dockerized Ingestion)
 
-To keep your database up-to-date, you can schedule `ingest.py` to run daily using `cron` (Linux/macOS) or Task Scheduler (Windows).
+We have provided a completely Dockerized environment that spins up Grafana, a SQLite web interface, and an ingestion service that automatically runs the `ingest.py` script every hour.
 
-Example crontab entry to run daily at 11:55 PM:
-```bash
-55 23 * * * cd /path/to/fitbyte && /path/to/fitbyte/venv/bin/python ingest.py
-```
 
 ## Grafana Integration
 
 We have provided a `docker-compose.yml` file to quickly spin up a Grafana instance with the necessary SQLite plugin pre-installed.
 
-### 1. Start Grafana
+### 1. Build and Start the Stack
 
-Run the following command in the project directory:
+Run the following command in the project directory. This will build the Python ingestion container and download the Grafana and SQLite-web images:
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
+
+You now have three containers running:
+1. **fitbyte-grafana** (Port 3001): The visualization dashboard.
+2. **fitbyte-sqlite-web** (Port 8081): A web interface to explore your raw database.
+3. **fitbyte-ingest** (Background): A cron job that fetches your latest Fitbit data every hour.
+
+*Troubleshooting*: To view the logs of your automatic background ingestion, run `docker logs -f fitbyte-ingest`.
 
 ### 2. Access Grafana
 
-1. Open your browser and go to `http://localhost:3000`.
+1. Open your browser and go to `http://localhost:3001`.
 2. Log in with the default credentials:
    - **Username**: `admin`
    - **Password**: `admin` (You will be prompted to change this upon first login)
