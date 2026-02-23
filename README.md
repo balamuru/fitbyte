@@ -85,7 +85,10 @@ We have provided a `docker-compose.yml` file to quickly spin up a Grafana instan
 
 ### 1. Build and Start the Stack
 
-Run the following command in the project directory. This will build the Python ingestion container and download the Grafana and SQLite-web images:
+**IMPORTANT:** Before running Docker, you must authenticate manually at least once so the container has a valid token to use!
+
+1. From your terminal, run `python auth.py` and log in via your web browser. This generates a `token.json` file on your computer.
+2. Run the following command in the project directory. This will build the Python ingestion container and download the Grafana and SQLite-web images:
 
 ```bash
 docker compose up -d --build
@@ -94,7 +97,7 @@ docker compose up -d --build
 You now have three containers running:
 1. **fitbyte-grafana** (Port 3001): The visualization dashboard.
 2. **fitbyte-sqlite-web** (Port 8081): A web interface to explore your raw database.
-3. **fitbyte-ingest** (Background): A cron job that fetches your latest Fitbit data every hour.
+3. **fitbyte-ingest** (Background): A cron job that silently mounts your local `token.json` and fetches your latest Fitbit data every hour.
 
 *Troubleshooting*: To view the logs of your automatic background ingestion, run `docker logs -f fitbyte-ingest`.
 
