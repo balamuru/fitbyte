@@ -49,6 +49,21 @@ def init_db():
         )
     ''')
     
+    # Store individual exercise sessions (e.g., runs, bike rides)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS exercise_sessions (
+            log_id INTEGER PRIMARY KEY,
+            date TEXT,
+            start_time TEXT,
+            activity_name TEXT,
+            duration INTEGER,
+            calories INTEGER,
+            steps INTEGER,
+            distance REAL,
+            average_heart_rate INTEGER
+        )
+    ''')
+    
     conn.commit()
     conn.close()
     print(f"Database initialized at {DB_FILE}")
@@ -135,6 +150,44 @@ def insert_heart_rate_intraday(date, dataset):
         INSERT OR IGNORE INTO heart_rate_intraday (date, time, value)
         VALUES (?, ?, ?)
     ''', rows)
+    
+    conn.commit()
+    conn.close()
+
+def upsert_exercise_sessions(date, sessions):
+    """
+    Insert or update exercise sessions for a specific date.
+    sessions is a list of dicts from the Fitbit API 'activities' array.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    for session in sessions:
+        cursor.execute('''
+            INSERT INTO exercise_sessions (
+                log_id, date, start_time, activity_name, duration, 
+                calories, steps, distance, average_heart_rate
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(log_id) DO UPDATE SET
+                start_time=excluded.start_time,
+                activity_name=excluded.activity_name,
+                duration=excluded.duration,
+                calories=excluded.calories,
+                steps=excluded.steps,
+                distance=excluded.distance,
+                average_heart_rate=excluded.average_heart_rate
+        ''', (
+            session.get('logId'),
+            session.get('startDate', date),
+            session.get('startTime', ''),
+            session.get('name', 'Unknown'),
+            session.get('duration', 0),
+            session.get('calories', 0),
+            session.get('steps', 0),
+            session.get('distance', 0.0),
+            session.get('averageHeartRate', None)
+        ))
     
     conn.commit()
     conn.close()
